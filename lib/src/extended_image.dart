@@ -1297,7 +1297,7 @@ class _ExtendedImageState extends State<ExtendedImage>
 
   void _incrementReferenceCounter() {
     final int imageHashCode = widget.image.hashCode;
-    if (!_referenceCounter.containsKey(imageHashCode)) {
+    if (_referenceCounter.containsKey(imageHashCode)) {
       _referenceCounter[imageHashCode] = _referenceCounter[imageHashCode]! + 1;
     } else {
       _referenceCounter[imageHashCode] = 1;

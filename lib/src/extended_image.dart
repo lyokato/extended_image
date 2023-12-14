@@ -16,6 +16,8 @@ import 'editor/editor.dart';
 import 'gesture/slide_page.dart';
 import 'gesture/slide_page_handler.dart';
 
+final Map<int, int> _referenceCounter = <int, int>{};
+
 /// extended image base on official
 class ExtendedImage extends StatefulWidget {
   ExtendedImage({
@@ -1095,7 +1097,9 @@ class _ExtendedImageState extends State<ExtendedImage>
     _replaceImage(info: null);
     // TODO(zmtzawqlp): Exception has occurred
     // https://github.com/flutter/flutter/issues/77576
-    if (widget.clearMemoryCacheWhenDispose) {
+
+    final int rc = _decrementReferenceCounter();
+    if (widget.clearMemoryCacheWhenDispose && rc == 0) {
       // if (widget.image is ExtendedImageProvider) {
       //   (widget.image as ExtendedImageProvider<dynamic>)
       //       .evict(includeLive: false);
@@ -1120,6 +1124,8 @@ class _ExtendedImageState extends State<ExtendedImage>
 
     WidgetsBinding.instance.addObserver(this);
     _scrollAwareContext = DisposableBuildContext<State<ExtendedImage>>(this);
+
+    _incrementReferenceCounter();
   }
 
   @override
@@ -1274,6 +1280,28 @@ class _ExtendedImageState extends State<ExtendedImage>
     }
 
     _updateSourceStream(newStream, rebuild: rebuild);
+  }
+
+  int _decrementReferenceCounter() {
+    final int imageHashCode = widget.image.hashCode;
+    final int currentCounter = _referenceCounter[imageHashCode] ?? 0;
+    final int updatedCounter = currentCounter - 1;
+    if (updatedCounter <= 0) {
+      _referenceCounter.remove(imageHashCode);
+      return 0;
+    } else {
+      _referenceCounter[imageHashCode] = updatedCounter;
+      return updatedCounter;
+    }
+  }
+
+  void _incrementReferenceCounter() {
+    final int imageHashCode = widget.image.hashCode;
+    if (!_referenceCounter.containsKey(imageHashCode)) {
+      _referenceCounter[imageHashCode] = _referenceCounter[imageHashCode]! + 1;
+    } else {
+      _referenceCounter[imageHashCode] = 1;
+    }
   }
 
   /// Stops listening to the image stream, if this state object has attached a

@@ -1046,6 +1046,13 @@ class _ExtendedImageState extends State<ExtendedImage>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _resolveImage();
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     _updateInvertColors();
     _resolveImage();
